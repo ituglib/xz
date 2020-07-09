@@ -16,6 +16,9 @@
 
 #ifdef TUKLIB_DOSLIKE
 #	include <io.h>
+#elif defined __TANDEM
+#       include <floss.h(floss_poll)>
+static bool warn_fchown;
 #else
 #	include <poll.h>
 static bool warn_fchown;
@@ -103,7 +106,11 @@ io_init(void)
 #ifndef TUKLIB_DOSLIKE
 	// If fchown() fails setting the owner, we warn about it only if
 	// we are root.
+#ifdef __TANDEM
+	warn_fchown = geteuid() == 65535;
+#else
 	warn_fchown = geteuid() == 0;
+#endif
 
 	// Create a pipe for the self-pipe trick.
 	if (pipe(user_abort_pipe))
@@ -254,8 +261,11 @@ io_wait(file_pair *pair, int timeout, bool is_reading)
 	pfd[1].events = POLLIN;
 
 	while (true) {
+#ifdef __TANDEM
+		const int ret = floss_poll(pfd, 2, timeout);
+#else
 		const int ret = poll(pfd, 2, timeout);
-
+#endif
 		if (user_abort)
 			return IO_WAIT_ERROR;
 

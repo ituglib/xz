@@ -17,7 +17,7 @@
 #ifdef TUKLIB_DOSLIKE
 #	include <io.h>
 #else
-#	include <poll.h>
+#	include <floss.h(floss_poll)>
 static bool warn_fchown;
 #endif
 
@@ -282,7 +282,7 @@ io_wait(file_pair *pair, int timeout, bool is_reading)
 	pfd[1].events = POLLIN;
 
 	while (true) {
-		const int ret = poll(pfd, 2, timeout);
+		const int ret = floss_poll(pfd, 2, timeout);
 
 		if (user_abort)
 			return IO_WAIT_ERROR;
